@@ -54,12 +54,13 @@ async def handler(message: Message) -> None:
     if not text:
         await command_help_handelr(message)
 
-    olx_pattern = re.compile(r'(?:olx.ua).+(?:obyavlenie).+')
+    olx_pattern = re.compile(r'(?:auto.ria.com/uk).+')
     links = olx_pattern.findall(text)
 
     if links:
         for link in links:
             result = parser(link)
+            print(str(result))
     else:
         await command_help_handelr(message)
 
