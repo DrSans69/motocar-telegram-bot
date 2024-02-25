@@ -1,6 +1,6 @@
 import asyncio
 import re
-import subprocess
+from src.parser import parse
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
@@ -11,7 +11,6 @@ from aiogram.types import Message, Chat
 PARSER = "parser.js"
 with open("TOKEN", "r") as f:
     TOKEN = f.read()
-
 
 dp = Dispatcher()
 
@@ -52,21 +51,72 @@ async def command_help_handelr(message: Message) -> None:
 async def handler(message: Message) -> None:
     text = message.text
     if not text:
+        print("No text provided")
         await command_help_handelr(message)
+
+    print('Message:')
+    print(text)
+    print()
 
     olx_pattern = re.compile(r'(?:auto.ria.com/uk).+')
     links = olx_pattern.findall(text)
 
-    if links:
-        for link in links:
-            result = parser(link)
-            print(str(result))
-    else:
+    if not links:
+        print("No links provided")
+        await command_help_handelr(message)
+        return
+
+    link = links[0]
+    try:
+        result = parse(r'https://' + link)
+        if type(result) is not dict:
+            await command_help_handelr(message)
+        await make_ad(message, result)
+    except ImportError:
+        print("Error while tring to make ad")
         await command_help_handelr(message)
 
 
-async def parser(link: str):
-    subprocess.run(["node", PARSER, link])
+async def make_ad(message: Message, result: dict) -> None:
+    print(result)
+    name = result.get('name', 'N/A')
+    price = result.get('price', 'N/A')
+    location = result.get('location', 'N/A')
+    mileage = result.get('mileage', 'N/A')
+    phones = result.get('phones', [])
+    description = result.get(
+        'description', 'N/A').replace('<br>', '\n').replace('</br>', '\n').replace('<br/>', '\n')
+
+    params = result.get('params', {})
+    drive = params.get('drive', 'N/A')
+    engine = params.get('engine', 'N/A')
+    transmission = params.get('transmission', 'N/A')
+
+    print('Extracting parameters - Success')
+
+    # Construct the response message
+    response_message = ""
+    response_message += f"🚗{name}\n"
+    response_message += f"💸{price}\n"
+    response_message += f"✈️{location}\n"
+    response_message += f"🛣{mileage} тис. км\n\n"
+
+    response_message += "📱Власник:\n"
+    for phone in phones:
+        response_message += phone
+
+    response_message += "\n\n\nХарактеристики:\n\n"
+    response_message += f"⚙️Привід: {drive}\n"
+    response_message += f"⚙️Двигун: {engine}\n"
+    response_message += f"⚙️Коробка передач: {transmission}\n\n"
+
+    response_message += "!?Короткий опис\n"
+    response_message += description
+
+    response_message += "\n\n\nСлава Україні !🇺🇦"
+
+    # Send the message back to the user
+    await message.answer(response_message.replace("<br>", "\n"))
 
 
 if __name__ == "__main__":
