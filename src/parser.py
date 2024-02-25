@@ -29,6 +29,9 @@ def parse(url: str = None):
     data['description'] = parse_description(soup)
     data['phones'] = parse_phones(soup)
 
+    data = {k: v for k, v in data.items() if v is not None}
+
+    # print(data)
     return data
 
 
@@ -74,7 +77,9 @@ def parse_params(soup):
 
 def parse_description(soup):
     div = soup.find('div', class_='full-description')
-    return div.decode_contents()
+    if div:
+        return div.decode_contents()
+    return None
 
 
 def parse_phones(soup):
@@ -92,7 +97,7 @@ def parse_phones(soup):
 
 
 def main():
-    url = "https://auto.ria.com/uk/auto_toyota_sequoia_35965716.html"
+    url = "https://auto.ria.com/uk/auto_mercedes_benz_vito_36114523.html"
     parse(url)
 
 
