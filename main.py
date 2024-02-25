@@ -2,6 +2,7 @@ import asyncio
 import re
 from src.parser import parse
 import datetime
+import config
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
@@ -9,16 +10,13 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, Chat
 # import aiogram.utils.markdown as text_decorate
 
-PARSER = "parser.js"
-with open("TOKEN", "r") as f:
-    TOKEN = f.read()
 
 dp = Dispatcher()
 
 
 async def main() -> None:
     global bot
-    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(config.token, parse_mode=ParseMode.HTML)
 
     print("Bot started")
 
@@ -134,7 +132,7 @@ async def make_ad(message: Message, result: dict) -> None:
 
 def get_current_time(message: Message = None):
     if message is None:
-        return datetime.datetime.now(datetime.UTC).strftime('%d-%m-%Y %H:%M:%S')
+        return datetime.datetime.utcnow().strftime('%d-%m-%Y %H:%M:%S')
     return message.date.strftime('%d-%m-%Y %H:%M:%S')
 
 
