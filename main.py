@@ -2,7 +2,8 @@ import asyncio
 import re
 from src.parser import parse
 import datetime
-import config
+import os
+
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
@@ -13,10 +14,14 @@ from aiogram.types import Message, Chat
 
 dp = Dispatcher()
 
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+if TOKEN is None:
+    raise ValueError("Please set the TELEGRAM_BOT_TOKEN environment variable")
+
 
 async def main() -> None:
     global bot
-    bot = Bot(config.token, parse_mode=ParseMode.HTML)
+    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
     print("Bot started")
 
