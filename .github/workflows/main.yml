@@ -16,4 +16,8 @@ jobs:
               run: pip install -r requirements.txt
             - name: Build EXE with PyInstaller
               run: pyinstaller --onefile main.py # Replace with your script's name
-
+            - name: Upload EXE as Artifact
+              uses: actions/upload-artifact@v2
+              with:
+                  name: windows-executable
+                  path: dist/main.exe
