@@ -1,6 +1,5 @@
 datetime
 asyncio
-re
 aiogram
 bs4
 requests
