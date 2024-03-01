@@ -1,22 +1,25 @@
-import asyncio
 import re
-from src.parser import parse
 import datetime
 import os
 
-
+import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, Chat
 # import aiogram.utils.markdown as text_decorate
 
+from src.parser import parse
+from src.messages import messages
+
 
 dp = Dispatcher()
+LOG_SPLITER = "-" * 20
+DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
+MAX_MESSAGE_CHARS = 4096
 
-TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-if TOKEN is None:
-    raise ValueError("Please set the TELEGRAM_BOT_TOKEN environment variable")
+with open("TOKEN", 'r') as f:
+    TOKEN = f.read()
 
 
 async def main() -> None:
@@ -30,43 +33,49 @@ async def main() -> None:
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    print(
-        f"Start message - id:{message.from_user.id} - time:{get_current_time(message)}")
     """
     This handler receives messages with `/start` command
     """
-    s = []
-    s.append(f"Hello, <b><i>{message.from_user.full_name}</i></b>!")
-    await message.answer("\n".join(s))
-    await command_help_handelr(message)
+    print(LOG_SPLITER)
+    print("Start - id:{} - time:{}".format(
+        message.from_user.id,
+        get_current_time(message))
+    )
+
+    answer = messages['start']['en']
+    answer = answer.replace('[!name]', message.from_user.full_name)
+    await message.answer(answer)
+    await help_message(message)
 
 
 @dp.message(Command("help"))
 async def command_help_handelr(message: Message) -> None:
-    print(
-        f"Help message - id:{message.from_user.id} - time:{get_current_time(message)}")
     """
     This handler receives messages with `/help` command
     """
-    s = []
-    s.append(
-        f"I will parse the offer from auto ria and create a telegram message from it"
+    print(LOG_SPLITER)
+    print("Help - id:{} - time:{}".format(
+        message.from_user.id,
+        get_current_time(message))
     )
-    s.append(f"Give me a link to try")
-    await message.answer("\n".join(s))
+
+    await help_message(message)
 
 
 @dp.message()
 async def handler(message: Message) -> None:
-    print(
-        f"Request message - id:{message.from_user.id} - time:{get_current_time(message)}")
+    print(LOG_SPLITER)
+    print("Msg - id:{} - time:{}".format(
+        message.from_user.id,
+        get_current_time(message))
+    )
 
     text = message.text
     if not text:
         print("No text provided")
-        await command_help_handelr(message)
+        await help_message(message)
+        return
 
-    print('Message:')
     print(text)
 
     olx_pattern = re.compile(r'(?:auto.ria.com/uk).+')
@@ -74,18 +83,18 @@ async def handler(message: Message) -> None:
 
     if not links:
         print("No links provided")
-        await command_help_handelr(message)
+        await help_message(message)
         return
 
     link = links[0]
-    try:
-        result = parse(r'https://' + link)
-        if type(result) is not dict:
-            await command_help_handelr(message)
-        await make_ad(message, result)
-    except ImportError:
-        print("Error while tring to make ad")
-        await command_help_handelr(message)
+    result = parse(r'https://' + link)
+
+    if type(result) is not dict:
+        print("Res in't dict")
+        await help_message(message)
+        return
+
+    await make_ad(message, result)
 
 
 async def make_ad(message: Message, result: dict) -> None:
@@ -135,10 +144,14 @@ async def make_ad(message: Message, result: dict) -> None:
         f"Request complete - id:{message.from_user.id} - time:{get_current_time()}")
 
 
-def get_current_time(message: Message = None):
+def get_current_time(message: Message = None) -> str:
     if message is None:
-        return datetime.datetime.utcnow().strftime('%d-%m-%Y %H:%M:%S')
-    return message.date.strftime('%d-%m-%Y %H:%M:%S')
+        return datetime.datetime.now(datetime.UTC).strftime(DATE_FORMAT)
+    return message.date.strftime(DATE_FORMAT)
+
+
+async def help_message(message: Message) -> None:
+    await message.answer(messages['help']['en'])
 
 
 if __name__ == "__main__":
