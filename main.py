@@ -10,13 +10,16 @@ from aiogram.types import Message, Chat
 # import aiogram.utils.markdown as text_decorate
 
 from src.parser import parse
-from src.messages import messages
-
+from src.messages import get_messages
+from src.templates import get_templates
 
 dp = Dispatcher()
 LOG_SPLITER = "-" * 20
 DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
 MAX_MESSAGE_CHARS = 4096
+messages = get_messages()
+templates_base = get_templates()
+
 
 with open("TOKEN", 'r') as f:
     TOKEN = f.read()
@@ -101,47 +104,30 @@ async def make_ad(message: Message, result: dict) -> None:
     print("Result:")
     print(result)
 
-    name = result.get('name', 'N/A')
-    price = result.get('price', 'N/A')
-    location = result.get('location', 'N/A')
-    mileage = result.get('mileage', 'N/A')
-    phones = result.get('phones', [])
+    data = {
+        '[!name]': result.get('name', 'N/A'),
+        '[!price]': result.get('price', 'N/A'),
+        '[!location]': result.get('location', 'N/A'),
+        '[!mileage]': result.get('mileage', 'N/A'),
+        '[!description]': result.get('description', 'N/A'),
+        '[!drive]': result.get('params', {}).get('drive', 'N/A'),
+        '[!engine]': result.get('params', {}).get('engine', 'N/A'),
+        '[!transmission]': result.get('params', {}).get('transmission', 'N/A'),
+        '[!phone]': result.get('phones', ['N/A'])[0],
+        '[!phones]': '\n'.join([str(phone) for phone in result.get('phones', ['N/A'])]),
+    }
 
-    description = result.get('description', 'N/A')
-    description = description.replace('<br>', '\n')
-    description = description.replace('</br>', '\n')
-    description = description.replace('<br/>', '\n')
-    params = result.get('params', {})
-    drive = params.get('drive', 'N/A')
-    engine = params.get('engine', 'N/A')
-    transmission = params.get('transmission', 'N/A')
+    response = templates_base['default']
 
-    # Construct the response message
-    response_message = ""
-    response_message += f"🚗{name}\n"
-    response_message += f"💸{price}\n"
-    response_message += f"✈️{location}\n"
-    response_message += f"🛣{mileage} тис. км\n\n"
+    for placeholder, value in data.items():
+        response = response.replace(placeholder, str(value))
 
-    response_message += "📱Власник:\n"
-    for phone in phones:
-        response_message += phone
+    await message.answer(response)
 
-    response_message += "\n\n\nХарактеристики:\n\n"
-    response_message += f"⚙️Привід: {drive}\n"
-    response_message += f"⚙️Двигун: {engine}\n"
-    response_message += f"⚙️Коробка передач: {transmission}\n\n"
-
-    response_message += "!?Короткий опис\n"
-    response_message += description
-
-    response_message += "\n\nСлава Україні !🇺🇦"
-
-    # Send the message back to the user
-    await message.answer(response_message)
-
-    print(
-        f"Request complete - id:{message.from_user.id} - time:{get_current_time()}")
+    print("Req sus - id:{} - time:{}".format(
+        message.from_user.id,
+        get_current_time())
+    )
 
 
 def get_current_time(message: Message = None) -> str:

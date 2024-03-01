@@ -13,11 +13,9 @@ def parse(url: str = None):
     if not url:
         return
 
-    # Send an HTTP request to the specified URL and fetch the HTML content
     response = requests.get(url)
     html_content = response.text
 
-    # Parse the HTML content
     soup = BeautifulSoup(html_content, 'html.parser')
 
     data = {}
