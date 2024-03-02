@@ -29,7 +29,7 @@ def parse(url: str = None):
 
     data = {k: v for k, v in data.items() if v is not None}
 
-    print(data)
+    # print(data)
     return data
 
 
@@ -49,7 +49,8 @@ def parse_price(soup):
 
 def parse_location(soup):
     section = soup.find('section', id='userInfoBlock')
-    div = section.find('div', class_='item_inner')
+    divs = section.find_all('div', class_='item_inner')
+    div = [div for div in divs if not div.find('strong')][0]
     return div.text.strip()
 
 
@@ -95,7 +96,7 @@ def parse_phones(soup):
 
 
 def main():
-    url = "https://auto.ria.com/uk/auto_infiniti_m25_35201213.html"
+    url = "https://auto.ria.com/uk/auto_kia_cerato_36151828.html"
     parse(url)
 
 
