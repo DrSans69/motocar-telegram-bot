@@ -1,1 +1,5 @@
-help
+To get your ad, just send me valid link, example:
+https://auto.ria.com/uk/<i>your_car</i>.html
+
+You can change <b>language</b> in /settings
+You can manage templates in /templates

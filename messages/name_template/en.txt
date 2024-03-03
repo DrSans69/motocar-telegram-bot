@@ -1,0 +1,3 @@
+Now - name your template.
+Keep in mind, your template will be phisically stored on computer.
+Give it a nice name!

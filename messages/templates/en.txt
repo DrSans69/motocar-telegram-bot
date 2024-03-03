@@ -1,1 +1,5 @@
-here are your tempaltes
+Here you can see list of all available templates
+First there are your templates
+Then our default templates
+Also you can <b>add template</b>
+You can see more details about template by clicking on it

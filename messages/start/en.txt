@@ -1,1 +1,4 @@
-Hello
+Hello <b>[!name]</b>
+I'm bot that can parser auto.ria
+and create pretty advertisement,
+using your templates

@@ -1,0 +1,2 @@
+Template created!
+You can see it using /templates again

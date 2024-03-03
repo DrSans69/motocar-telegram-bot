@@ -1,1 +1,5 @@
-here you can create template
+Now send your template, don't make it too long
+Here are fields you can use (you will figured it out):
+[!fields]
+
+Your can quit by typing "quit" or restarting bot with /start
