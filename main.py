@@ -11,27 +11,14 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-
-from src.parser import parse
+from src.parser import *
 from src.import_data import *
-
-LOG_SPLITER = "-" * 20
-DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
-MAX_MESSAGE_CHARS = 4096
-BASE_LANGUAGE = 'en'
-INLINE_TEMPLATES_NUMBER = 6
-BASE_USER_DATA = {
-    "language": "en",
-    "templates": "dafault"
-}
+from src.consts import *
+from src.logs import *
+from src.user_data import *
+from src.others import *
 
 dp = Dispatcher()
-messages = get_messages()
-buttons = get_buttons()
-base_templates = get_templates()
-
-
-TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 
 async def main() -> None:
@@ -41,12 +28,6 @@ async def main() -> None:
     print("Bot started")
 
     await dp.start_polling(bot)
-
-
-@dp.message(Command("test"))
-async def test(message: Message):
-    log_message("Templates", message)
-    user_data = check_user_data(message.from_user.id)
 
 
 @dp.message(Command("templates"))
@@ -79,22 +60,6 @@ async def command_templates_handler(message: Message):
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
 
     await message.answer(messages['templates'][user_data['language']], reply_markup=keyboard)
-
-
-@dp.callback_query(F.data == "create_template")
-async def callback_create_template(callback: CallbackQuery):
-    log_message("Make template", callback)
-
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await create_template_handler(callback)
-
-
-async def create_template_handler(callback: CallbackQuery):
-    message = callback.message
-    user_data = check_user_data(message.from_user.id)
-    lang = user_data.get('lang', 'en')
-
-    await callback.message.answer(messages['create_template'][lang])
 
 
 @dp.message(CommandStart())
@@ -144,98 +109,17 @@ async def handler(message: Message) -> None:
 
     await make_ad(message, result)
 
-
-async def make_ad(message: Message, result: dict) -> None:
-    print("Result:")
-    pprint.pprint(result)
-
-    data = {
-        '[!name]': result.get('name', 'N/A'),
-        '[!price]': result.get('price', 'N/A'),
-        '[!location]': result.get('location', 'N/A'),
-        '[!mileage]': result.get('mileage', 'N/A'),
-        '[!description]': result.get('description', 'N/A'),
-        '[!drive]': result.get('params', {}).get('drive', 'N/A'),
-        '[!engine]': result.get('params', {}).get('engine', 'N/A'),
-        '[!transmission]': result.get('params', {}).get('transmission', 'N/A'),
-        '[!phone]': result.get('phones', ['N/A'])[0],
-        '[!phones]': '\n'.join([str(phone) for phone in result.get('phones', ['N/A'])]),
-    }
-
-    response = base_templates['default']
-    pprint.pprint(response)
-
-    for placeholder, value in data.items():
-        response = response.replace(placeholder, str(value))
-
-    pprint.pprint(response)
-
-    await message.answer(response, disable_web_page_preview=True)
-
-    print("{} - id:{} - time:{}".format(
-        "Req sus",
-        message.from_user.id,
-        get_current_time())
-    )
+# commands
 
 
-async def help_message(message: Message) -> None:
-    await message.answer(messages['help']['en'])
+@dp.callback_query(F.data == "create_template")
+async def callback_create_template(callback: CallbackQuery):
+    log_message("Make template", callback)
 
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await create_template_handler(callback)
 
-def get_current_time(val: Message | CallbackQuery = None) -> str:
-    if val is None or type(val) is not Message:
-        return datetime.datetime.now(datetime.UTC).strftime(DATE_FORMAT)
-    return val.date.strftime(DATE_FORMAT)
-
-
-def log_message(key_word: str, val: CallbackQuery | Message, spliter=True) -> None:
-    if spliter:
-        print(LOG_SPLITER)
-    print("{} - id:{} - time:{}".format(
-        key_word,
-        val.from_user.id,
-        get_current_time(val))
-    )
-
-
-def check_user_data(id: str | int) -> dict:
-    dir_path = user_dir(id)
-
-    if os.path.exists(dir_path):
-        return get_user_data(id)
-
-    os.makedirs(dir_path)
-    os.mkdir(os.path.join(dir_path, 'templates'))
-
-    with open(os.path.join(dir_path, 'user_data.json'), 'w') as f:
-        json.dump(BASE_USER_DATA, f)
-
-    return get_user_data(id)
-
-
-def get_user_data(id: str | int) -> dict:
-    filename = os.path.join(user_dir(id), 'user_data.json')
-
-    with open(filename, 'r') as f:
-        return json.load(f)
-
-
-def get_user_templates(id: str | int) -> list:
-    templates_dir = os.path.join(user_dir(id), 'templates')
-    if not os.path.exists(templates_dir):
-        os.mkdir(templates_dir)
-
-    return os.listdir(templates_dir)
-
-
-def user_dir(id: str | int) -> str:
-    if type(id) is str:
-        id = int(id)
-    id = str(id)
-
-    return os.path.join('tmp', 'users', id)
-
+# callbacks
 
 if __name__ == "__main__":
     asyncio.run(main())
