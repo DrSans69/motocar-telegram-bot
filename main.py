@@ -3,21 +3,17 @@ import datetime
 import os
 import json
 import asyncio
+import pprint
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
-from aiogram.filters.state import State, StatesGroup
-from aiogram.types import Message, Chat, CallbackQuery
+from aiogram.types import Message, CallbackQuery
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
-# import aiogram.utils.markdown as text_decorate
 
 from src.parser import parse
-from src.messages import get_messages
-from src.templates import get_templates
-from src.buttons import get_buttons
+from src.import_data import *
 
 LOG_SPLITER = "-" * 20
 DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
@@ -31,12 +27,11 @@ BASE_USER_DATA = {
 
 dp = Dispatcher()
 messages = get_messages()
-base_templates = get_templates()
 buttons = get_buttons()
+base_templates = get_templates()
 
 
-with open("TOKEN", 'r') as f:
-    TOKEN = f.read()
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 
 async def main() -> None:
@@ -104,9 +99,6 @@ async def create_template_handler(callback: CallbackQuery):
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    """
-    This handler receives messages with `/start` command
-    """
     log_message("Start", message)
 
     answer = messages['start']['en']
@@ -118,9 +110,6 @@ async def command_start_handler(message: Message) -> None:
 
 @dp.message(Command("help"))
 async def command_help_handelr(message: Message) -> None:
-    """
-    This handler receives messages with `/help` command
-    """
     log_message("Help", message)
     await help_message(message)
 
@@ -158,7 +147,7 @@ async def handler(message: Message) -> None:
 
 async def make_ad(message: Message, result: dict) -> None:
     print("Result:")
-    print(result)
+    pprint.pprint(result)
 
     data = {
         '[!name]': result.get('name', 'N/A'),
@@ -174,9 +163,12 @@ async def make_ad(message: Message, result: dict) -> None:
     }
 
     response = base_templates['default']
+    pprint.pprint(response)
 
     for placeholder, value in data.items():
         response = response.replace(placeholder, str(value))
+
+    pprint.pprint(response)
 
     await message.answer(response, disable_web_page_preview=True)
 
