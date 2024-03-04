@@ -1,12 +1,13 @@
 import os
 
 
-def get_templates(dir: str = 'templates'):
-    commands = {}
-    for filename in os.listdir(os.path.join(dir)):
-        with open(os.path.join(dir, filename), 'r') as f:
-            commands[filename.replace('.txt', '')] = f.read()
-    return commands
+def get_templates(dir: str = 'templates') -> list:
+    templates = os.listdir(dir)
+    for i, template in enumerate(templates):
+        if template[-4:] == '.txt':
+            templates[i] = template[:-4]
+
+    return templates
 
 
 def get_messages(dir: str = 'messages'):

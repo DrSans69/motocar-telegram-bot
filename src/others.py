@@ -1,5 +1,4 @@
-import re
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
@@ -15,7 +14,15 @@ async def make_ad(message: Message, result: dict) -> None:
 
     data = get_data_from_result(result)
 
-    response = base_templates['default']
+    user_data = get_user_data(message.from_user.id)
+    print(user_data)
+    template = user_data.get('template', 'default')
+
+    response, _ = get_template_text(template, message.from_user.id)
+    print(response)
+
+    if response is None:
+        response, _ = get_template_text('default', message.from_user.id)
 
     for placeholder, value in data.items():
         response = response.replace(placeholder, str(value))
@@ -49,8 +56,8 @@ async def help_message(message: Message) -> None:
     await message.answer(messages['help']['en'])
 
 
-async def create_template_message(message: Message, state: FSMContext):
-    user_data = get_user_data(message.from_user.id)
+async def create_template_message(val: Message | CallbackQuery, state: FSMContext):
+    user_data = get_user_data(val.from_user.id)
     lang = user_data.get('lang', 'en')
 
     await state.set_data({'template': ''})
@@ -60,7 +67,10 @@ async def create_template_message(message: Message, state: FSMContext):
     response = messages['create_template'][lang]
     response = response.replace('[!fields]', '\n'.join(fields))
 
-    await message.answer(response)
+    if type(val) is Message:
+        await val.answer(response, disable_web_page_preview=True)
+    elif type(val) is CallbackQuery:
+        await val.message.answer(response, disable_web_page_preview=True)
 
 
 async def name_template_message(message: Message, state: FSMContext):
@@ -71,18 +81,41 @@ async def name_template_message(message: Message, state: FSMContext):
     data['template_name'] = ''
     await state.set_data(data)
 
-    await message.answer(messages['name_template'][lang])
+    response = messages['name_template'][lang]
+    response = response.replace(
+        '[!chars]', ' '.join(ALLOWED_CHARS_FOR_TEMPLATE_NAME))
+    response = response.replace(
+        '[!len]', str(MAX_TEMPLATE_NAME_LENGTH))
+
+    await message.answer(response)
 
 
-def is_valid_filename(filename: str) -> bool:
-    if not len(filename) or re.search(r'[<>:"/\\|?*\0\n\r\t]', filename):
-        return False
+async def show_template_message(val: CallbackQuery, filename: str):
+    if not filename:
+        return
 
-    if filename.endswith(' ') or filename.endswith('.'):
-        return False
+    user_data = get_user_data(val.from_user.id)
+    lang = user_data.get('language', 'en')
 
-    basename = filename.upper().split('.')[0]
-    if basename in RESERVED_NAMES_WINDOWS:
-        return False
+    template, template_type = get_template_text(
+        filename, val.from_user.id)
+    if template is None:
+        return
 
-    return True
+    kb = [[
+        InlineKeyboardButton(
+            text=buttons['make_default_template'][lang],
+            callback_data='mdt_' + filename),
+    ]]
+
+    if template_type == 'u':
+        kb[0].append(
+            InlineKeyboardButton(
+                text=buttons['delete_template'][lang],
+                callback_data='dlt_' + filename)
+        )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+
+    await val.message.answer(template, reply_markup=keyboard, disable_web_page_preview=True)
+    await val.answer()

@@ -46,8 +46,6 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
     user_data = check_user_data(message.from_user.id)
     lang = user_data.get('lang', 'en')
 
-    await state.set_state(User.default)
-
     answer = messages['start'][lang]
     answer = answer.replace('[!name]', message.from_user.full_name)
 
@@ -74,14 +72,14 @@ async def command_templates_handler(message: Message):
         kb.append([
             InlineKeyboardButton(
                 text=template,
-                callback_data='shw_u_' + template)
+                callback_data='ts_' + template)
         ])
 
-    for template in base_templates.keys():
+    for template in base_templates:
         kb.append([
             InlineKeyboardButton(
                 text=template,
-                callback_data='shw_u_' + template)
+                callback_data='ts_' + template)
         ])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
@@ -93,6 +91,16 @@ async def command_templates_handler(message: Message):
 async def command_help_handelr(message: Message) -> None:
     log_message("Help", message)
     await help_message(message)
+
+
+@dp.message(Command("settings"))
+async def command_help_handelr(message: Message) -> None:
+    log_message("Setting", message)
+
+    user_data = check_user_data(message.from_user.id)
+    lang = user_data.get('lang', 'en')
+
+    await message.answer(messages['setting'][lang])
 
 
 @dp.message(User.creating_template)
@@ -143,16 +151,18 @@ async def naming_template_handler(message: Message, state: FSMContext):
         log_message("Template created", message)
         data = await state.get_data()
         pprint(data)
-        if is_valid_filename(data['template_name']):
+        if is_valid_filename(data['template_name'], message.from_user.id):
             await state.set_state(User.default)
-            await message.answer(messages['template_created'][lang])
-            save_template(message.from_user.id,
-                          data['template_name'], data['template'])
+            if save_template(message.from_user.id,
+                             data['template_name'], data['template']):
+                await message.answer(messages['template_created'][lang])
+            else:
+                await message.answer(messages['error'][lang])
         else:
             await message.answer(messages['invalid_template_name'][lang])
         return
 
-    if is_valid_filename(message.text):
+    if is_valid_filename(message.text, message.from_user.id):
         data = await state.get_data()
         data['template_name'] = message.text
         await state.set_data(data)
@@ -206,7 +216,44 @@ async def callback_create_template(callback: CallbackQuery, state: FSMContext):
     await state.set_state(User.creating_template)
 
     await callback.message.edit_reply_markup(reply_markup=None)
-    await create_template_message(callback.message, state)
+    await create_template_message(callback, state)
+
+
+@dp.callback_query(F.data.startswith('ts_'))
+async def callback_show_user_templat(callback: CallbackQuery):
+    log_message("Show template", callback)
+
+    await show_template_message(
+        callback, callback.data.replace('ts_', '', 1))
+    await callback.answer()
+
+
+@dp.callback_query(F.data.startswith('dlt_'))
+async def callback_show_user_templat(callback: CallbackQuery):
+    log_message("Delete template", callback)
+
+    user_data = get_user_data(callback.from_user.id)
+    lang = user_data.get('language', 'en')
+
+    delete_template(
+        callback.data.replace('dlt_', '', 1), callback.from_user.id)
+
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.answer(messages['delete_template'][lang])
+
+
+@dp.callback_query(F.data.startswith('mdt_'))
+async def callback_show_user_templat(callback: CallbackQuery):
+    log_message("Make default template", callback)
+
+    user_data = get_user_data(callback.from_user.id)
+    lang = user_data.get('language', 'en')
+
+    make_default_template(
+        callback.data.replace('mdt_', '', 1), callback.from_user.id)
+
+    await callback.answer(messages['make_default_template'][lang])
+
 
 # callbacks
 
