@@ -11,13 +11,13 @@ jobs:
             - name: Set up Python
               uses: actions/setup-python@v2
               with:
-                  python-version: "3.12" # Adjust as needed
+                  python-version: "3.12"
             - name: Install dependencies
               run: pip install -r requirements.txt
             - name: Build EXE with PyInstaller
-              run: pyinstaller --onefile main.py # Replace with your script's name
-            - name: Upload EXE as Artifact
+              run: pyinstaller main.py
+            - name: Upload EXE and Dependencies as Artifact
               uses: actions/upload-artifact@v2
               with:
-                  name: windows-executable
-                  path: dist/main.exe
+                  name: windows-executable-folder
+                  path: dist/main/
