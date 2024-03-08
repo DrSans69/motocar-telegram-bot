@@ -14,7 +14,7 @@ def check_user_data(id: str) -> dict:
     os.makedirs(dir_path)
     os.mkdir(os.path.join(dir_path, 'templates'))
 
-    with open(os.path.join(dir_path, 'user_data.json'), 'w') as f:
+    with open(os.path.join(dir_path, 'user_data.json'), 'w', encoding='utf8') as f:
         json.dump(BASE_USER_DATA, f)
 
     return get_user_data(id)
@@ -72,7 +72,7 @@ def user_dir(id: str) -> str:
 def save_template(id: str | int, filename: str, template: str) -> bool:
     try:
         dir_path = os.path.join(user_dir(id), 'templates')
-        with open(os.path.join(dir_path, filename + '.txt'), 'w') as f:
+        with open(os.path.join(dir_path, filename + '.txt'), 'w', encoding='utf8') as f:
             f.write(template)
         return True
     except:
@@ -89,12 +89,12 @@ def get_template_text(filename: str, id: str) -> tuple[str, str]:
     filename += '.txt'
     template = os.path.join(user_dir(id), 'templates', filename)
     if os.path.exists(template):
-        with open(template, 'r') as f:
+        with open(template, 'r', encoding='utf8') as f:
             return f.read(), 'u'
 
     template = os.path.join('templates', filename)
     if os.path.exists(template):
-        with open(template, 'r') as f:
+        with open(template, 'r', encoding='utf8') as f:
             return f.read(), 'b'
     return None, None
 
@@ -108,7 +108,7 @@ def delete_template(filename: str, id: str) -> None:
 def make_default_template(template: str, id: str) -> None:
     filename = os.path.join(user_dir(id), 'user_data.json')
 
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding='utf8') as file:
         data = json.load(file)
 
     data['template'] = template
