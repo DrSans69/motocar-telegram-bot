@@ -25,11 +25,10 @@ def parse(url: str = None):
     data['mileage'] = parse_mileage(soup)
     data['params'] = parse_params(soup)
     data['description'] = parse_description(soup)
-    data['phones'] = parse_phones(soup)
+    # data['phones'] = parse_phones(soup)
 
     data = {k: v for k, v in data.items() if v is not None}
 
-    # print(data)
     return data
 
 
@@ -96,7 +95,7 @@ def parse_phones(soup):
 
 
 def main():
-    url = "https://auto.ria.com/uk/auto_kia_cerato_36151828.html"
+    url = "https://auto.ria.com/uk/auto_daewoo_lanos_36301829.html"
     parse(url)
 
 
