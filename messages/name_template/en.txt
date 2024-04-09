@@ -1,6 +1,6 @@
 Now - name your template.
 Keep in mind, your template will be phisically stored on computer.
-You must use only this characters (maybe upper case)
+You must use only these characters (maybe upper case)
 [!chars]
 Also len of name must be below [!len]
 Give it a nice name!

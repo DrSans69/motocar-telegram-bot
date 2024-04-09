@@ -4,3 +4,4 @@ aiogram
 bs4
 requests
 pyinstaller
+python-dotenv

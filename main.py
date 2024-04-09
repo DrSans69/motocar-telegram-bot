@@ -4,14 +4,15 @@ from pprint import pprint
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import CommandStart, Command
+from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import (
     Message,
     CallbackQuery,
     InlineKeyboardMarkup,
-    InlineKeyboardButton
+    InlineKeyboardButton,
 )
 
 from src.parser import *
@@ -32,7 +33,7 @@ class User(StatesGroup):
 
 async def main() -> None:
     global bot
-    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
     print("Bot started")
 
@@ -100,7 +101,7 @@ async def command_help_handelr(message: Message) -> None:
     user_data = check_user_data(message.from_user.id)
     lang = user_data.get('lang', 'en')
 
-    await message.answer(messages['setting'][lang])
+    await message.answer(messages['settings'][lang])
 
 
 @dp.message(User.creating_template)
@@ -204,7 +205,6 @@ async def default_handler(message: Message) -> None:
         return
 
     await make_ad(message, result)
-
 
 # commands
 

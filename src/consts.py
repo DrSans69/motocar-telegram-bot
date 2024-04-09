@@ -1,4 +1,7 @@
 from src.import_data import *
+from dotenv import load_dotenv
+
+load_dotenv()
 
 LOG_SPLITER = "-" * 20
 DATE_FORMAT = '%d-%m-%Y %H:%M:%S'
