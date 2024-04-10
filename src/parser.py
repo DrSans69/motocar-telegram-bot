@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+from pprint import pprint
 
 TECH_INFO_TABLE = {
     'Двигун': 'engine',
@@ -25,15 +26,11 @@ def parse(url: str = None):
     data['mileage'] = parse_mileage(soup)
     data['params'] = parse_params(soup)
     data['description'] = parse_description(soup)
-    # data['phones'] = parse_phones(soup)
+    data['phones'] = parse_phones(soup)
 
     data = {k: v for k, v in data.items() if v is not None}
 
     return data
-
-
-def parse_x(soup):
-    pass
 
 
 def parse_name(soup):
@@ -81,11 +78,17 @@ def parse_description(soup):
 
 
 def parse_phones(soup):
-    hash = soup.select('script[class^="js-user-secure-"]')[0].get('data-hash')
+    phones = []
+
+    scripts = soup.select('script[class^="js-user-secure-"]')
+    hash = scripts[0].get('data-hash')
     id = soup.find('body').get('data-auto-id')
     url = "https://auto.ria.com/users/phones/"+id+"?hash="+hash
-    response = json.loads(requests.get(url).text)
-    phones = []
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+    response = json.loads(requests.get(url, headers=headers).text)
+
     for phone in response['phones']:
         phoneNumber = phone['phoneFormatted'].replace(' ', '')
         phoneNumber = phoneNumber.replace('(', '')
@@ -95,8 +98,8 @@ def parse_phones(soup):
 
 
 def main():
-    url = "https://auto.ria.com/uk/auto_daewoo_lanos_36301829.html"
-    parse(url)
+    url = "https://auto.ria.com/uk/auto_land_rover_freelander_34752113.html"
+    pprint(parse(url))
 
 
 if __name__ == '__main__':
