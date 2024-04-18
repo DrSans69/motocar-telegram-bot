@@ -26,6 +26,12 @@ ALLOWED_CHARS_FOR_TEMPLATE_NAME = [
 ]
 MAX_TEMPLATE_NAME_LENGTH = 64 - 8
 
+TECH_INFO_TABLE = {
+    'Двигун': 'engine',
+    'Привід': 'drive',
+    'Коробка передач': 'transmission'
+}
+
 messages = get_messages()
 buttons = get_buttons()
 base_templates = get_templates()

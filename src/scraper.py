@@ -2,15 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from pprint import pprint
-
-TECH_INFO_TABLE = {
-    'Двигун': 'engine',
-    'Привід': 'drive',
-    'Коробка передач': 'transmission'
-}
+from src.consts import *
 
 
-def parse(url: str = None):
+def scrape(url: str = None):
     if not url:
         return
 
@@ -20,43 +15,43 @@ def parse(url: str = None):
     soup = BeautifulSoup(html_content, 'html.parser')
 
     data = {}
-    data['name'] = parse_name(soup)
-    data['price'] = parse_price(soup)
-    data['location'] = parse_location(soup)
-    data['mileage'] = parse_mileage(soup)
-    data['params'] = parse_params(soup)
-    data['description'] = parse_description(soup)
-    data['phones'] = parse_phones(soup)
+    data['name'] = scrape_name(soup)
+    data['price'] = scrape_price(soup)
+    data['location'] = scrape_location(soup)
+    data['mileage'] = scrape_mileage(soup)
+    data['params'] = scrape_params(soup)
+    data['description'] = scrape_description(soup)
+    data['phones'] = scrape_phones(soup)
 
     data = {k: v for k, v in data.items() if v is not None}
 
     return data
 
 
-def parse_name(soup):
+def scrape_name(soup):
     return soup.find('h1', class_='head').text.strip()
 
 
-def parse_price(soup):
+def scrape_price(soup):
     div = soup.find('div', class_='price_value')
     strong = div.find('strong')
     return strong.text.strip()
 
 
-def parse_location(soup):
+def scrape_location(soup):
     section = soup.find('section', id='userInfoBlock')
     divs = section.find_all('div', class_='item_inner')
     div = [div for div in divs if not div.find('strong')][0]
     return div.text.strip()
 
 
-def parse_mileage(soup):
+def scrape_mileage(soup):
     div = soup.find('div', class_='base-information')
     span = div.find('span', 'size18')
     return span.text.strip()
 
 
-def parse_params(soup):
+def scrape_params(soup):
     details = soup.find('div', id='details')
     divs = details.find_all('dd', class_='')
     params = {}
@@ -70,14 +65,14 @@ def parse_params(soup):
     return params
 
 
-def parse_description(soup):
+def scrape_description(soup):
     div = soup.find('div', class_='full-description')
     if div:
         return div.get_text('\n').strip()
     return None
 
 
-def parse_phones(soup):
+def scrape_phones(soup):
     phones = []
 
     scripts = soup.select('script[class^="js-user-secure-"]')
@@ -99,7 +94,7 @@ def parse_phones(soup):
 
 def main():
     url = "https://auto.ria.com/uk/auto_land_rover_freelander_34752113.html"
-    pprint(parse(url))
+    pprint(scrape(url))
 
 
 if __name__ == '__main__':

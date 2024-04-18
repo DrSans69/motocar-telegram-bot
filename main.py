@@ -15,7 +15,7 @@ from aiogram.types import (
     InlineKeyboardButton,
 )
 
-from src.parser import *
+from src.scraper import *
 from src.import_data import *
 from src.consts import *
 from src.logs import *
@@ -197,7 +197,7 @@ async def default_handler(message: Message) -> None:
         return
 
     link = links[0]
-    result = parse(r'https://' + link)
+    result = scrape(r'https://' + link)
 
     if type(result) is not dict:
         print("Res in't dict")
